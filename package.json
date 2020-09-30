@@ -6,7 +6,6 @@
   "author": "@gillkyle",
   "license": "MIT",
   "workspaces": [
-    "api",
     "example-site",
     "gatsby-source-plugin-simong"
   ],

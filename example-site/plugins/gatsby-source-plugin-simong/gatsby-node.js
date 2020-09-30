@@ -14,7 +14,7 @@ const options = {
 };
 const apiUrl = 'https://api.simongjewelry.com/products';
 const itemsPerPage = 10;
-const POST_NODE_TYPE = `Post`
+const PRODUCT_NODE_TYPE = 'ShopifyProduct'
 
 // helper function for creating nodes
 const createNodeFromData = (item, nodeType, helpers) => {
@@ -41,11 +41,11 @@ exports.onPreInit = () => console.log("Loaded gatsby-source-plugin-simong")
 exports.createSchemaCustomization = ({ actions }) => {
     const { createTypes } = actions
     createTypes(`
-      type Post implements Node {
+      type ShopifyProduct implements Node {
         id: ID!
         slug: String!
         images: [String!]!
-        # create relationships between Post and File nodes for optimized images
+        # create relationships between ShopifyProduct and File nodes for optimized images
         remoteImage: File @link
         
       }`)
@@ -72,7 +72,7 @@ exports.sourceNodes = async function sourceNodes(
 
     // loop through data returned from the api and create Gatsby nodes for them
     products.forEach(product =>
-        createNodeFromData(product, POST_NODE_TYPE, helpers)
+        createNodeFromData(product, PRODUCT_NODE_TYPE, helpers)
     )
 
     return
@@ -134,10 +134,9 @@ exports.onCreateNode = async ({
     createNodeId,
     node,
 }) => {
-    console.log(`onCreateNode ${node.id}`)
     // transfrom remote file nodes using Gatsby sharp plugins
     // because onCreateNode is called for all nodes, verify that you are only running this code on nodes created by your plugin
-    if (node.internal.type === POST_NODE_TYPE) {
+    if (node.internal.type === PRODUCT_NODE_TYPE) {
         for (const img of node.images) {
             const fileNode = await createRemoteFileNode({
                 // the url of the remote image to generate a node for
@@ -148,11 +147,8 @@ exports.onCreateNode = async ({
                 parentNodeId: node.id,
             })
             if (fileNode) {
-                // used to add a field `remoteImage` to the Post node from the File node in the schemaCustomization API
+                // used to add a field `remoteImage` to the ShopifyProduct node from the File node in the schemaCustomization API
                 node.remoteImage = fileNode.id
-    
-                // inference can link these without schemaCustomization like this, but creates a less sturdy schema
-                // node.remoteImage___NODE = fileNode.id
             }
         }
     }
