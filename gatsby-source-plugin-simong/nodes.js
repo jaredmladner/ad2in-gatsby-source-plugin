@@ -84,7 +84,6 @@ exports.ProductNode = imageArgs =>
         )
         return image
       })
-
     return node
   })
 

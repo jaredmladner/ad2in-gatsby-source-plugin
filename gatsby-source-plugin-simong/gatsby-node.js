@@ -3,7 +3,7 @@ const {
     ProductVariantNode,
     ProductVariantMetafieldNode } = require("./nodes");
 const fetch = require("node-fetch")
-const forEach = require("p-iteration")
+const { forEach } = require("p-iteration")
 
 // JWT Token
 const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjNkOWM3ZDdiODQ5OTdmMWU0MjcyZjFhMTQ4YzZjZjE1ZjgwZTczNDMwYTgwNWRjM2RmMjNhOWYxNWNlNzk2OWM1ZDU1ZTQ1NDE4MGJjZGFmIn0.eyJhdWQiOiI0IiwianRpIjoiM2Q5YzdkN2I4NDk5N2YxZTQyNzJmMWExNDhjNmNmMTVmODBlNzM0MzBhODA1ZGMzZGYyM2E5ZjE1Y2U3OTY5YzVkNTVlNDU0MTgwYmNkYWYiLCJpYXQiOjE1OTc2NzIwNTIsIm5iZiI6MTU5NzY3MjA1MiwiZXhwIjoxNjI5MjA4MDUyLCJzdWIiOiIyNTkiLCJzY29wZXMiOltdfQ.xcIdcqtHhgHAtUZeOpEsjAaZRDHQHLn5u6UsNhpOsmM8FSlSIpLTIFZWA-ZKB2rYNKkG7GSIVqOLN75LtfxvZ_n9C_NYEOTrxesbAFVT7hmFCJ3kFyEimhkjDaH0z2oHr-YMzeOAAFa2zMowTfFmqIxsA5lMCLqQ_elCs8YLiGlhxxLN7Q2I3ou-P-EfQAXdxCri9UI7E_B9N-dh_darWp30dvbi_4rP04UY4Z0XAIYE501l94LYBGkGNA9OzIKlG0IAJUEawJMqgVomG_6wA-tVm5GUwagXta3MCOoBnb9wreCrnOZbxH-VlNxkUy9r_P-c8OfB50aFD1UX9Ny781WUNzib4SKtsaL3wp1waLAoIM74m2mhx5meTSt3wwJO46zhh5R2I35M-LA_W_FT6HYD2bMxaTbyrUf84ciSLRGDMW36mTQKYABRvZEtJ6bfUiNF4qJaWrl3JRbWL-pW97C7lUERvRNuFkdN7T1uTXYdnoaGkkeDSSFzTiQE1Ln_jE29muywkz4r3-SGqNKGVzO-tjwb1KLxLMBLGauRMhMgmjnVpIrA4xHWYhA5LVhMPGsmaqLLlqsniA4wxLSkNWgnz1Zbsv4-udL_3QEekfuTn9XoUg5IV7mgWsuQcKXdhYZZUd1RSrWYLqEGJMp3VyyQyKFC735uVFdbk71F9ks";
@@ -127,64 +127,73 @@ exports.sourceNodes = async function sourceNodes(
     console.log(`Space ID: ${pluginOptions.spaceId}`)
 
     const products = await getAllProducts();
-    products.forEach(obj => renameKey(obj, 'name', 'title'));
-    products.forEach(obj => renameKey(obj, 'slug', 'handle'));
-    products.forEach(obj => obj.descriptionHtml = obj.description);
-    products.forEach(obj => renameKey(obj, 'images', 'imageUrls'));
-    products.forEach(product =>
-        product.variants.forEach(variant => renameKey(variant, 'images', 'imageUrls')));
-
-    for (let product of products) {
+    await forEach(products, product => {
+        renameKey(product, 'name', 'title');
+        renameKey(product, 'slug', 'handle');
+        product.descriptionHtml = product.description;
+        renameKey(product, 'images', 'imageUrls');
+        product.priceRange = {
+            minVariantPrice: { amount: "$0.00", currencyCode: "USD" },
+            maxVariantPrice: { amount: "$0.00", currencyCode: "USD" },
+        };
+        forEach(product.variants, variant => {
+            renameKey(variant, 'images', 'imageUrls')
+            var currency = variant.price;
+            var price = Number(currency.replace(/[^0-9.-]+/g,""));
+            var maxPrice = Number(product.priceRange.maxVariantPrice.amount.replace(/[^0-9.-]+/g,""));
+            var minPrice = Number(product.priceRange.minVariantPrice.amount.replace(/[^0-9.-]+/g,""));
+            if (price >= maxPrice) 
+                product.priceRange.maxVariantPrice.amount = variant.price;
+            if (price <= minPrice || minPrice == 0) 
+                product.priceRange.minVariantPrice.amount = variant.price;
+        })
         product.images = [];
         for (let x = 0; x < product.imageUrls.length; x++) {
             let image = {
+                altText: product.title,
                 id: `${product.id}-image-${x}`,
                 url: product.imageUrls[x]
             }
             product.images.push(image);
         }
-    }
+    });
 
     try {
-        createNodes(
-            products,
-            ProductNode,
-            args,
-            async (product, productNode) => {
-                if (product.variants)
-                    product.variants.forEach(async v => {
-                        if (v.metafields)
-                            v.metafields.forEach(async metafield =>
-                                createNode(
-                                    await ProductVariantMetafieldNode(imageArgs)(metafield)
+        let promises = []
+        promises = promises.concat([
+            createNodes(
+                products,
+                ProductNode,
+                args,
+                async (product, productNode) => {
+                    if (product.variants)
+                        await forEach(product.variants, async v => {
+                            if (v.metafields)
+                                await forEach(v.metafields, async metafield =>
+                                    createNode(
+                                        await ProductVariantMetafieldNode(imageArgs)(metafield)
+                                    )
                                 )
+                            return createNode(
+                                await ProductVariantNode(imageArgs, productNode)(v)
                             )
-                        return createNode(
-                            await ProductVariantNode(imageArgs, productNode)(v)
+                        })
+
+                    if (product.metafields)
+                        await forEach(product.metafields, async metafield =>
+                            createNode(await ProductMetafieldNode(imageArgs)(metafield))
                         )
-                    })
 
-                if (product.metafields)
-                    product.metafields.forEach(async metafield =>
-                        createNode(await ProductMetafieldNode(imageArgs)(metafield))
-                    )
-
-                if (product.options)
-                    product.options.forEach(async option =>
-                        createNode(await ProductOptionNode(imageArgs)(option))
-                    )
-            }
-        )
+                    if (product.options)
+                        await forEach(product.options, async option =>
+                            createNode(await ProductOptionNode(imageArgs)(option))
+                        )
+                }
+            )
+        ])
+        await Promise.all(promises)
     } catch (e) {
         console.error(e)
     }
     return
-}
-exports.onCreateNode = async ({
-    actions: { createNode },
-    getCache,
-    createNodeId,
-    node,
-}) => {
-    console.log(`Create Node Type: ${node.internal.type}`)
 }
