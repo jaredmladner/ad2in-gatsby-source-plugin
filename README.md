@@ -18,7 +18,11 @@ npm install
 ```
 
 ## Run locally
-From the directory `./example-site`: `gatsby develop`
+From the directory `./example-site`: 
+```
+gatsby develop
+```
 
 Access the web site: http://localhost:8000/
+
 Access the GraphQL: http://localhost:8000/___graphql
