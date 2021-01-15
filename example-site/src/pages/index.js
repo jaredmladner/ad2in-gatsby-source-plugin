@@ -8,7 +8,7 @@ export default ({ data }) => (
       padding: 32,
     }}
   >
-    <h1>Posts</h1>
+    <h1>SimonG Products</h1>
     <section
       style={{
         display: `grid`,
@@ -17,7 +17,7 @@ export default ({ data }) => (
         justifyContent: "space-between",
       }}
     >
-      {data.allPost.nodes.map(post => (
+      {data.allSimonGProduct.nodes.map(product => (
         <div
           style={{
             display: `flex`,
@@ -28,11 +28,11 @@ export default ({ data }) => (
             borderRadius: 8,
           }}
         >
-          <h2>{post.slug}</h2>
-          <p>{post.description}</p>
+          <h2>{product.title}</h2>
+          <p>{product.description}</p>
           <Img
-            fluid={post.remoteImage.childImageSharp.fluid}
-            alt={post.name}
+            fluid={product.images[0].localFile.childImageSharp.fluid}
+            alt={product.name}
             style={{
               maxHeight: 300,
             }}
@@ -45,18 +45,19 @@ export default ({ data }) => (
 
 export const query = graphql`
   {
-    allPost {
+    allSimonGProduct {
       nodes {
         id
-        slug
+        title
         description
-        slug
-        remoteImage {
+        images {
           id
-          childImageSharp {
-            id
-            fluid {
-              ...GatsbyImageSharpFluid
+          localFile {
+            childImageSharp {
+              id
+              fluid {
+                ...GatsbyImageSharpFluid
+              }
             }
           }
         }
