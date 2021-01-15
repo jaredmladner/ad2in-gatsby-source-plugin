@@ -17,6 +17,12 @@ cd g/example-site/plugins/gatsby-source-plugin-simong
 npm install
 ```
 
+## Configure the Environment Variables
+1. copy the `.env-sample` to `.env`
+2. replace the values with your access tokens
+
+***Ensure you use quotes around the JWT token***
+
 ## Run locally
 From the directory `./example-site`: 
 ```
