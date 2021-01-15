@@ -8,7 +8,11 @@ export default ({ data }) => (
       padding: 32,
     }}
   >
+<<<<<<< HEAD
     <h1>SimonG Products</h1>
+=======
+    <h1>Products</h1>
+>>>>>>> 50ee638d25bfc8956e37a4483678201b7c866914
     <section
       style={{
         display: `grid`,
@@ -17,7 +21,11 @@ export default ({ data }) => (
         justifyContent: "space-between",
       }}
     >
+<<<<<<< HEAD
       {data.allSimonGProduct.nodes.map(product => (
+=======
+      {data.allShopifyProduct.nodes.map(product => (
+>>>>>>> 50ee638d25bfc8956e37a4483678201b7c866914
         <div
           style={{
             display: `flex`,
@@ -28,10 +36,17 @@ export default ({ data }) => (
             borderRadius: 8,
           }}
         >
+<<<<<<< HEAD
           <h2>{product.title}</h2>
           <p>{product.description}</p>
           <Img
             fluid={product.images[0].localFile.childImageSharp.fluid}
+=======
+          <h2>{product.slug}</h2>
+          <p>{product.description}</p>
+          <Img
+            fluid={product.remoteImage.childImageSharp.fluid}
+>>>>>>> 50ee638d25bfc8956e37a4483678201b7c866914
             alt={product.name}
             style={{
               maxHeight: 300,
@@ -45,7 +60,11 @@ export default ({ data }) => (
 
 export const query = graphql`
   {
+<<<<<<< HEAD
     allSimonGProduct {
+=======
+    allShopifyProduct {
+>>>>>>> 50ee638d25bfc8956e37a4483678201b7c866914
       nodes {
         id
         title

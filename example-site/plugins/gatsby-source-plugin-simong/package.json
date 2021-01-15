@@ -1,0 +1,26 @@
+{
+  "name": "gatsby-source-plugin-simong",
+  "version": "1.0.0",
+  "description": "A minimal boilerplate for the essential files Gatsby looks for in a plugin",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No build script setup\""
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-source-plugin",
+    "gatsby-plugin"
+  ],
+  "author": "Jared Ladner",
+  "license": "MIT",
+  "dependencies": {
+    "gatsby-source-filesystem": "^2.3.28",
+    "node-fetch": "^2.6.1",
+    "gatsby-node-helpers": "^0.3.0",
+    "p-iteration": "^1.1.8"
+  },
+  "engines": {
+    "node": ">=10.13.0"
+  },
+  "main": "index.js"
+}
